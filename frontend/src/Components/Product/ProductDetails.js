@@ -36,10 +36,6 @@ const ProductDetails = ({ match }) => {
     useEffect(() => {
         productDetails(id)
         
-        // if (error) {
-        //     alert.error(error);
-           
-        // }
     }, [id,]);
 
      return (
