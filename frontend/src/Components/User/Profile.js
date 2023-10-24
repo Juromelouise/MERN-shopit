@@ -2,7 +2,7 @@ import React, { Fragment, useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import Loader from '../Layout/Loader'
 import MetaData from '../Layout/Metadata'
-import { getUser } from '../../utils/helpers';
+import { getUser, } from '../../utils/helpers';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -21,7 +21,7 @@ const Profile = () => {
             }
         }
         try {
-            const { data } = await axios.get(`http://localhost:4001/api/v1/me`, config)
+            const { data } = await axios.get(`${process.env.REACT_APP_API}/api/v1/me`, config)
             console.log(data)
             setUser(data.user)
             setLoading(false)

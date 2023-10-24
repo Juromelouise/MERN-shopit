@@ -4,68 +4,80 @@ import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { getToken } from '../../utils/helpers';
 
 const UpdateProfile = () => {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [avatar, setAvatar] = useState('')
     const [avatarPreview, setAvatarPreview] = useState('/images/default_avatar.jpg')
-    const [error, setError] =useState('')
+    const [error, setError] = useState('')
     const [user, setUser] = useState({})
     const [loading, setLoading] = useState(false)
+    const [isUpdated, setIsUpdated] = useState(false)
     let navigate = useNavigate();
 
     const getProfile = async () => {
-        try {
-            const { data } = await axios.get(`${process.env.REACT_APP_API}/api/v1/me`)
-            setUser(data.user)
-            setLoading(false)
-           
-        } catch (error) {
-            toast.error("invalid user or password", {
-                position: toast.POSITION.BOTTOM_RIGHT
-            })
+        const config = {
+            headers: {
+                // 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getToken()}`
+            }
         }
-       
+        try {
+            const { data } = await axios.get(`${process.env.REACT_APP_API}/api/v1/me`, config)
+            console.log(data)
+            // setUser(data.user)
+            setName(data.user.name);
+            setEmail(data.user.email);
+            setAvatarPreview(data.user.avatar.url)
+            setLoading(false)
+        } catch (error) {
+            toast.error('user not found', {
+                position: toast.POSITION.BOTTOM_RIGHT
+            });
+        }
+    }
+
+    const updateProfile = async (userData) => {
+        const config = {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'Authorization': `Bearer ${getToken()}`
+            }
+        }
+        try {
+            const { data } = await axios.put(`${process.env.REACT_APP_API}/api/v1/me/update`, userData, config)
+            setIsUpdated(data.success)
+            setLoading(false)
+            toast.success('user updated', {
+                position: toast.POSITION.BOTTOM_RIGHT
+            });
+            //  getProfile();
+            navigate('/me', { replace: true })
+
+
+        } catch (error) {
+            console.log(error)
+            toast.error('user not found', {
+                position: toast.POSITION.BOTTOM_RIGHT
+            });
+        }
     }
 
     // console.log(error)
     useEffect(() => {
         getProfile()
-        if (user) {
-            setName(user.name);
-            setEmail(user.email);
-            setAvatarPreview(user.avatar.url)
-        }
-
-        if (error) {
-            toast.error('user not found', {
-                position: toast.POSITION.BOTTOM_RIGHT
-            });
-        }
-
-        // if (isUpdated) {
-        //     // alert.success('User updated successfully')
-        //     dispatch(loadUser());
-
-        //     navigate('/me',{ replace: true })
-
-        //     dispatch({
-        //         type: UPDATE_PROFILE_RESET
-        //     })
-        // }
 
     }, [])
 
     const submitHandler = (e) => {
         e.preventDefault();
-
         const formData = new FormData();
         formData.set('name', name);
         formData.set('email', email);
         formData.set('avatar', avatar);
-
-        // dispatch(updateProfile(formData))
+        updateProfile(formData)
     }
 
     const onChange = e => {
@@ -81,6 +93,7 @@ const UpdateProfile = () => {
         reader.readAsDataURL(e.target.files[0])
 
     }
+    console.log(user)
     return (
         <Fragment>
             <MetaData title={'Update Profile'} />
@@ -137,7 +150,7 @@ const UpdateProfile = () => {
                                     />
                                     <label className='custom-file-label' htmlFor='customFile'>
                                         Choose Avatar
-                                </label>
+                                    </label>
                                 </div>
                             </div>
                         </div>
